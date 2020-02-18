@@ -2,10 +2,7 @@ package org.springframework.util;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.net.*;
 
 public class ResourceUtils {
 
@@ -89,6 +86,13 @@ public class ResourceUtils {
     public static URI toURI(String location) throws URISyntaxException{
         //格式化空格
         return new URI(StringUtils.replace(location, " ", "%20"));
+    }
+
+    /**
+     * 如果是JNLPCachedJarURLConnection连接则开启缓存
+     */
+    public static void useCachesIfNecessary(URLConnection con){
+        con.setUseCaches(con.getClass().getSimpleName().startsWith("JNLP"));
     }
 
     public static void main(String[] args) throws Exception{
