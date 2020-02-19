@@ -27,6 +27,14 @@ import java.net.URLConnection;
  * 2. 带有路径解析的资源类似这样，比如：
  * http://....; ftp://.......; file://......; classpath://....; jar://........;war://.......；
  * 3. 该类使用Java的统一资源定位符，URL对象，来定位资源，来标识如何访问这类资源。
+ *
+ * https://github.com/spring-projects/spring-framework/blob/master/spring-core：
+ * Abstract base class for resources which resolve URLs into File references,
+ * such as UrlResource or ClassPathResource.
+ * Detects the "file" protocol as well as the JBoss "vfs" protocol in URLs,
+ * resolving file system references accordingly.
+ * 该类是一个抽象资源的基础类，用于解析URL为文件引用；它可以在URL中检测file协议和jboss的vfs协议
+ * 来提取出文件系统的引用；
  */
 public abstract class AbstractFileResolvingResource extends AbstractResource{
     public AbstractFileResolvingResource() {}
@@ -70,6 +78,7 @@ public abstract class AbstractFileResolvingResource extends AbstractResource{
                 //此处还未真正进行网络连接
                 //如果是http会返回HttpURLConnection，jar-JarURLConnection
                 URLConnection con = url.openConnection();
+                this.customizeConnection(con);
                 HttpURLConnection httpCon = con instanceof HttpURLConnection ? (HttpURLConnection)con : null;
                 if(httpCon != null){
                     int code = httpCon.getResponseCode(); //发现内部有调用getInputStream
@@ -82,13 +91,13 @@ public abstract class AbstractFileResolvingResource extends AbstractResource{
                     }
                 }
 
-                if(con.getContentLength()>=0){
+                if(con.getContentLength()>=0){ //有content-length header
                     return true;
                 }else if(httpCon != null){ //其余错误码...
                     httpCon.disconnect();
                     return false;
                 } else {
-                    InputStream is = this.getInputStream();
+                    InputStream is = this.getInputStream(); //尝试打开inputstream，如果可以就判断存在？
                     is.close();
                     return true;
                 }
@@ -120,6 +129,7 @@ public abstract class AbstractFileResolvingResource extends AbstractResource{
             return this.getFile().length();
         } else {
             URLConnection con = url.openConnection();
+            this.customizeConnection(con);
             return (long)con.getContentLength();
         }
     }
@@ -129,10 +139,27 @@ public abstract class AbstractFileResolvingResource extends AbstractResource{
         URL url = this.getURL();
         if(!ResourceUtils.isFileURL(url) && !ResourceUtils.isJarURL(url)){
             URLConnection con = url.openConnection();
+            this.customizeConnection(con);
             return con.getLastModified(); //header-last-modified
         }else {
             return super.lastModified();
         }
+    }
+
+    protected void customizeConnection(URLConnection con) throws IOException{
+        ResourceUtils.useCachesIfNecessary(con);
+        if(con instanceof HttpURLConnection){
+            customizeConnection((HttpURLConnection)con);
+        }
+    }
+
+    /**
+     * 自定义HttpURLConnection，在exists，contentLength，lastModified方法调用，
+     * 默认设置请求方法HEAD，可以在子类中重写
+     * HEAD：类似于get请求，只不过返回的响应中没有具体的内容，用于获取报头
+     */
+    protected void customizeConnection(HttpURLConnection con) throws IOException{
+        con.setRequestMethod("HEAD");
     }
 
     public static void main(String[] args) throws Exception{
