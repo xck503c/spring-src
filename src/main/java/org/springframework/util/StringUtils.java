@@ -68,6 +68,34 @@ public class StringUtils {
     }
 
     /**
+     * 通过给定的path，分割出文件名
+     */
+    public static String getFilename(String path){
+        if(path == null){
+            return null;
+        }else {
+            int separatorIndex = path.lastIndexOf(FOLDER_SEPARATOR);
+            return separatorIndex != -1 ? path.substring(separatorIndex + 1) : path;
+        }
+    }
+
+    /**
+     * 应该是通过给定的完整文件的path路径，和该文件的相对路径，给出最终的完整路径，从而定位到该资源
+     */
+    public static String applyRelativePath(String path, String relativePath){
+        int separatorIndex = path.lastIndexOf(FOLDER_SEPARATOR);
+        if(separatorIndex!=-1){
+            String newPath = path.substring(0, separatorIndex);
+            if (!relativePath.startsWith(FOLDER_SEPARATOR)) {
+                newPath += FOLDER_SEPARATOR;
+            }
+            return newPath + relativePath;
+        }else {
+            return relativePath;
+        }
+    }
+
+    /**
      * 清除路径中多余的..或.符号，进行一个抵消计算
      */
     public static String cleanPath(String path){

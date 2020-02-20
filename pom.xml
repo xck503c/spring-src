@@ -8,5 +8,12 @@
     <artifactId>spring-src</artifactId>
     <version>V3.2.16</version>
 
+    <dependencies>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>5.1.21</version>
+        </dependency>
+    </dependencies>
 
 </project>
