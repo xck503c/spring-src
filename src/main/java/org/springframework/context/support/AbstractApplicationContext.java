@@ -6,7 +6,8 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.util.ObjectUtils;
 
-public class AbstractApplicationContext extends DefaultResourceLoader implements ConfigurableApplicationContext, DisposableBean {
+public abstract class AbstractApplicationContext extends DefaultResourceLoader
+        implements ConfigurableApplicationContext, DisposableBean {
 
     private String id;
     private String displayName;
@@ -41,6 +42,14 @@ public class AbstractApplicationContext extends DefaultResourceLoader implements
         return this.id;
     }
 
+    public ApplicationContext getParent() {
+        return this.parent;
+    }
+
+    public void setParent(ApplicationContext parent) {
+
+    }
+
     /**
      * 提供默认的关闭钩子注册方法：默认会在JVM关闭时自动调用AbstractApplicationContext的close方法
      */
@@ -49,11 +58,19 @@ public class AbstractApplicationContext extends DefaultResourceLoader implements
         if(shutdownHook == null){
             shutdownHook = new Thread(){
                 public void run() {
-                    AbstractApplicationContext.this.doClose();
+                    doClose();
                 }
             };
             Runtime.getRuntime().addShutdownHook(shutdownHook);
         }
+    }
+
+    public void destroy() {
+        close();
+    }
+
+    public void close(){
+
     }
 
     protected void doClose(){

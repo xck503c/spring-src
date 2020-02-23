@@ -90,6 +90,36 @@ public class ClassUtils {
     }
 
     /**
+     * 校验clazz的类加载器或者其父类加载器是否是classLoader
+     * 检验的目的就是防止不是该context中的类被缓存；
+     * 那如果传入不是该ApplicationContext所管理的类，会怎么样，为什么没有缓存意义？
+     */
+    public static boolean isCacheSafe(Class<?> clazz, ClassLoader classLoader){
+        Assert.notNull(clazz, "Class must no be null");
+        try {
+            ClassLoader target = clazz.getClassLoader();
+            if(target == null){ //这还能为空的？
+                return true;
+            }
+
+            ClassLoader cur = classLoader;
+            if(cur == target){
+                return true;
+            }
+
+            while(cur != null){
+                cur = cur.getParent();
+                if(cur == target){
+                    return true;
+                }
+            }
+            return false;
+        } catch (SecurityException e) {
+            return true; //系统类加载器会报错吗？
+        }
+    }
+
+    /**
      * 解析出，该类所在包的路径，例如：org.springframework.util.ClassUtils
      * ==> org/springframework/util
      */
@@ -108,11 +138,13 @@ public class ClassUtils {
     }
 
     public static void main(String[] args) throws Exception{
-        System.out.println(ClassUtils.class.getName()); //org.springframework.util.ClassUtils
+//        System.out.println(ClassUtils.class.getName()); //org.springframework.util.ClassUtils
+//
+//        //实验jdbc的例子
+//        String url = "jdbc:mysql://localhost:3309/test";
+//        Connection conn = DriverManager.getConnection(url, "root", "");
+//        conn.close();
 
-        //实验jdbc的例子
-        String url = "jdbc:mysql://localhost:3309/test";
-        Connection conn = DriverManager.getConnection(url, "root", "");
-        conn.close();
+        System.out.println(ClassUtils.class.getClassLoader());
     }
 }

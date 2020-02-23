@@ -1,4 +1,4 @@
 package com;
 
-public class Test {
+public class Test<T> {
 }

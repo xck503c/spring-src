@@ -3,7 +3,8 @@ package org.springframework.context;
 import java.util.EventObject;
 
 /**
- * 事件的抽象类
+ * 所有application event的始祖，应用事件的抽象类
+ * 既然jdk提供了，就直接继承
  */
 public abstract class ApplicationEvent extends EventObject {
     private static final long serialVersionUID = 7099057708183571937L;
