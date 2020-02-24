@@ -1,5 +1,6 @@
 package org.springframework.context.event;
 
+import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.GenericTypeResolver;
@@ -34,9 +35,15 @@ public class GenericApplicationListenerAdapter implements SmartApplicationListen
     @Override
     public boolean supportsEventType(Class<? extends ApplicationEvent> eventType) {
         Class<?> typeArg = GenericTypeResolver.resolveTypeArgument(this.delegate.getClass(), ApplicationListener.class);
-        //代理类？为什么这样可以判断可能是代理类
+        //因为找不到所以判断可能是代理
         if (typeArg == null || typeArg.equals(ApplicationEvent.class)) {
-            //...这里先不管，后面再说
+            //想要找到代理的Class有两种方法，
+            //1. 一种是该类已经实现了TargetClassAware，可以直接拿到代理类
+            //2. 一种是拿到它的父类，我觉得其实没用，因为如果是代理类，那么上面那个方法会自动往上遍历，自动可以找到
+            Class<?> targetClass = AopUtils.getTargetClass(this.delegate);
+            if (targetClass != this.delegate.getClass()) {
+                typeArg = GenericTypeResolver.resolveTypeArgument(targetClass, ApplicationListener.class);
+            }
         }
 
         //找不到就是默认支持？

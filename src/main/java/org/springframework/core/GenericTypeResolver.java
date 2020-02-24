@@ -3,7 +3,6 @@ package org.springframework.core;
 import com.TestApplicationListener;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
-import sun.jvm.hotspot.utilities.GenericArray;
 
 import java.lang.reflect.*;
 import java.util.ArrayList;

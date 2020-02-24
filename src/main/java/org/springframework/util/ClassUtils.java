@@ -9,6 +9,9 @@ public class ClassUtils {
 
     private static final char PATH_SEPARATOR = '/';
 
+    //CGLIB动态代理所使用的分隔符
+    private static final String CGLIB_CLASS_SEPARATOR = "$$";
+
     /**
      * 资料：https://blog.csdn.net/yangcheng33/article/details/52631940
      * 线程上下文类加载器，可以用在需要逆向加载的时候(绕过双亲委派模型的限制)；
@@ -137,6 +140,24 @@ public class ClassUtils {
         return packageName.replace(PACKAGE_SEPARATOR, PATH_SEPARATOR);
     }
 
+    public static boolean isCglibProxy(Object object){
+        return ClassUtils.isCglibProxyClass(object.getClass());
+    }
+
+    /**
+     * 判断类是否由CGLIB动态生成的代理类，判断该类的类名是否带上$$
+     */
+    public static boolean isCglibProxyClass(Class<?> clazz){
+        return clazz!=null && isCglibProxyClassName(clazz.getName());
+    }
+
+    /**
+     * 检测指定的类名是否是CGLIB生成的类
+     */
+    public static boolean isCglibProxyClassName(String className){
+        return className != null && className.contains(CGLIB_CLASS_SEPARATOR);
+    }
+
     public static void main(String[] args) throws Exception{
 //        System.out.println(ClassUtils.class.getName()); //org.springframework.util.ClassUtils
 //
@@ -145,6 +166,8 @@ public class ClassUtils {
 //        Connection conn = DriverManager.getConnection(url, "root", "");
 //        conn.close();
 
-        System.out.println(ClassUtils.class.getClassLoader());
+//        System.out.println(ClassUtils.class.getClassLoader());
+
+
     }
 }

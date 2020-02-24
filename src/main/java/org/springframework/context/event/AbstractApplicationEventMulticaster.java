@@ -1,6 +1,8 @@
 package org.springframework.context.event;
 
+import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.util.ClassUtils;
@@ -25,7 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * 看了几个类就涉及这么多。。。
  */
 public abstract class AbstractApplicationEventMulticaster
-        implements ApplicationEventMulticaster{
+        implements ApplicationEventMulticaster, BeanClassLoaderAware, BeanFactoryAware {
 
     /**
      * 默认的检索者，储存着所需的所有监听器和beanName，它通过直接调用add相关方法添加
@@ -43,6 +45,24 @@ public abstract class AbstractApplicationEventMulticaster
 
     //以默认检索作为互斥变量，保护该容器的添加操作
     private Object retrievalMutex = this.defaultRetriever;
+
+    public void setBeanClassLoader(ClassLoader classLoader) {
+        this.beanClassLoader = classLoader;
+    }
+
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory){
+        this.beanFactory = beanFactory;
+        //...其他
+    }
+
+    private BeanFactory getBeanFactory() {
+        if (this.beanFactory == null) {
+            throw new IllegalStateException("ApplicationEventMulticaster cannot retrieve listener beans " +
+                    "because it is not associated with a BeanFactory");
+        }
+        return this.beanFactory;
+    }
 
     @Override
     public void addApplicationListener(ApplicationListener listener) {
@@ -166,7 +186,17 @@ public abstract class AbstractApplicationEventMulticaster
 
         //根据监听器bean name，检索支持事件类型的监听器
         if(!listenerBeans.isEmpty()){
-
+            BeanFactory beanFactory = getBeanFactory();
+            for(String listenerBeanName : listenerBeans){
+                ApplicationListener listener = beanFactory.getBean(listenerBeanName, ApplicationListener.class);
+                //不包含且支持
+                if(!allListeners.contains(listener) && supportsEvent(listener, eventType, sourceType)){
+                    if (retriever != null) {
+                        retriever.applicationListenerBeans.add(listenerBeanName);
+                    }
+                    allListeners.add(listener);
+                }
+            }
         }
 
         return allListeners;
@@ -249,7 +279,15 @@ public abstract class AbstractApplicationEventMulticaster
             if(!applicationListenerBeans.isEmpty()){
                 //获取bean工厂，遍历缓存的beanName，拿到bean
                 for(String listenerBeanName : this.applicationListenerBeans){
-
+                    ApplicationListener listener = beanFactory.getBean(listenerBeanName, ApplicationListener.class);
+//                    if (this.preFiltered || !allListeners.contains(listener)) {
+//                        allListeners.add(listener);
+//                    }
+                    //这里不知道这个有什么用，如果preFiltered=true，表示不需要预先处理，false表示要处理，
+                    //怎么想感觉都很奇怪
+                    if (!allListeners.contains(listener)) {
+                        allListeners.add(listener);
+                    }
                 }
             }
             return allListeners;
