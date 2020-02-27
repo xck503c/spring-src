@@ -10,6 +10,12 @@ public class Assert {
         }
     }
 
+    public static void hasLength(String text, String message) {
+        if (!StringUtils.hasLength(text)) {
+            throw new IllegalArgumentException(message);
+        }
+    }
+
     //状态断言
     public static void state(boolean expression, String message){
         if(!expression){ //断言不成功

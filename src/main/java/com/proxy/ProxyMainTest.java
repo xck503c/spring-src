@@ -2,7 +2,11 @@ package com.proxy;
 
 import net.sf.cglib.proxy.Enhancer;
 import org.springframework.core.GenericTypeResolver;
+import sun.misc.ProxyGenerator;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.lang.reflect.Proxy;
 
 /**
@@ -10,6 +14,10 @@ import java.lang.reflect.Proxy;
  * 测试方法
  */
 public class ProxyMainTest {
+    static class A {
+
+    }
+
     public static void main(String[] args) {
         //静态代理
         UserDao userDao = new UserDao();
@@ -24,6 +32,7 @@ public class ProxyMainTest {
                 dynamicProxy);
         iud.save();
         iud.find();
+        System.out.println(iud.getClass()); //class com.sun.proxy.$Proxy0
 
         System.out.println("-------------------------");
         //cglib动态代理
@@ -64,5 +73,16 @@ public class ProxyMainTest {
         //find
         //结束CGLib动态代理find
         //cglib动态代理类名:com.proxy.UserDao$$EnhancerByCGLIB$$b9f787e2
+
+//        byte[] bytes = ProxyGenerator.generateProxyClass("ProxyTest", userDao.getClass().getInterfaces());
+//
+//        try {
+//            File file = new File("D:\\ProxyTest.class");
+//            FileOutputStream outputStream = new FileOutputStream(file);
+//            outputStream.write(bytes);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+        //反编译后把类临时放到com.proxy里面
     }
 }

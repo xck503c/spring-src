@@ -105,7 +105,7 @@ public abstract class AbstractApplicationEventMulticaster
         }
     }
 
-    protected Collection<ApplicationListener> getApplicationsListeners(){
+    protected Collection<ApplicationListener> getApplicationListeners(){
         synchronized (retrievalMutex){ //防止变化
             return this.defaultRetriever.getApplicationListeners();
         }
@@ -116,7 +116,7 @@ public abstract class AbstractApplicationEventMulticaster
      * 其次，该方法作用就是根据给定的event类型以及event中的事件源类型，获得对应的监听器；
      * 那么是如何获得？
      */
-    protected Collection<ApplicationListener> getApplicationsListeners(ApplicationEvent event){
+    protected Collection<ApplicationListener> getApplicationListeners(ApplicationEvent event){
         //1.获取事件类型和事件源类型，并创建缓存key
         Class<? extends ApplicationEvent> eventType = event.getClass();
         Object source = event.getSource();
@@ -220,6 +220,13 @@ public abstract class AbstractApplicationEventMulticaster
         return smartListener.supportsEventType(eventType) && smartListener.supportsSourceType(sourceType);
     }
 
+    /**
+     * 静态内部类和非静态内部类使用场景，感觉这个解释还是不妥：
+     * https://www.jianshu.com/p/c2c54664d4c9
+     * 1. 外部类与内部类有很强的联系
+     * 2. 内部类可以单独创建
+     * 3. 保持嵌套可读性
+     */
     /**
      * 基于事件类型，事件源的ListenerRetriever缓存key
      */

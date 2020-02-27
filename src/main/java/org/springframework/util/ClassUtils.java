@@ -5,9 +5,15 @@ import java.sql.DriverManager;
 
 public class ClassUtils {
 
+    //数组类名的后缀
+    private static final String ARRAY_SUFFIX = "[]";
+
     private static final char PACKAGE_SEPARATOR = '.';
 
     private static final char PATH_SEPARATOR = '/';
+
+    //内部类分割：class com.proxy.ProxyMainTest$A
+    private static final char INNER_CLASS_SEPARATOR = '$';
 
     //CGLIB动态代理所使用的分隔符
     private static final String CGLIB_CLASS_SEPARATOR = "$$";
@@ -122,6 +128,58 @@ public class ClassUtils {
         }
     }
 
+    public static String getShortName(String className){
+        Assert.hasLength(className, "Class name must not be empty");
+        //获取最后一个点的索引
+        int lastDotIndex = className.lastIndexOf(PACKAGE_SEPARATOR);
+        //如果是代理类，那就要去掉后面多余部分：com.proxy.UserDao$$EnhancerByCGLIB$$b9f787e2
+        int nameEndIndex = className.indexOf(CGLIB_CLASS_SEPARATOR);
+        if (nameEndIndex == -1) {
+            nameEndIndex = className.length(); //没有就是最大长度就行了
+        }
+        String shortName = className.substring(lastDotIndex + 1, nameEndIndex);
+        //如果是jdk动态代理：com.sun.proxy.$Proxy0
+        //如果是内部类：com.proxy.ProxyMainTest$A，这样的话，那就针对内部类的
+        shortName = shortName.replace(INNER_CLASS_SEPARATOR, PACKAGE_SEPARATOR);
+        return shortName;
+    }
+
+    /**
+     * 获取不带包名的类名
+     */
+    public static String getShortName(Class<?> clazz) {
+        return getShortName(getQualifiedName(clazz));
+    }
+
+    /**
+     * 获取类全限定符，就是标识类的一个名称
+     */
+    public static String getQualifiedName(Class<?> clazz){
+        Assert.notNull(clazz, "Class must not be null");
+        if (clazz.isArray()) {
+            return getQualifiedNameForArray(clazz);
+        }
+        else {
+            return clazz.getName();
+        }
+    }
+
+    /**
+     * 获取数组类型的限定符
+     * 1. 如果是数组几维数组就有几个[]
+     * 2. 然后在前面放入class类型，感觉直接在前面拼接不是也一样
+     * String[] -> java.lang.String[]
+     */
+    private static String getQualifiedNameForArray(Class<?> clazz){
+        StringBuilder result = new StringBuilder();
+        while(clazz.isArray()){
+            clazz = clazz.getComponentType();
+            result.append(ClassUtils.ARRAY_SUFFIX);
+        }
+        result.insert(0, clazz.getName());
+        return result.toString();
+    }
+
     /**
      * 解析出，该类所在包的路径，例如：org.springframework.util.ClassUtils
      * ==> org/springframework/util
@@ -168,6 +226,11 @@ public class ClassUtils {
 
 //        System.out.println(ClassUtils.class.getClassLoader());
 
-
+        //java.lang.String[]
+        //java.lang.Object[][]
+//        String[] strArr = new String[1];
+//        Object[][] objArr = new Object[1][1];
+//        objArr[0][0] = new String[1][1];
+//        System.out.println(getQualifiedNameForArray(strArr.getClass()));
     }
 }
