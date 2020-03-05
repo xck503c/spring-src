@@ -72,7 +72,7 @@ public class CustomizableThreadCreator implements Serializable {
      * 线程组：
      * 1. 每个线程组都管理了一组线程，同时也可以管理多个子线程组，有了父子关系后，自然也有父线程组
      * ，但是父线程组只能有一个
-     * 2.
+     * 2.整个是呈树形状
      */
     public void setThreadGroup(ThreadGroup threadGroup) {
         this.threadGroup = threadGroup;
